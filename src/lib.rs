@@ -1,4 +1,6 @@
 #![warn(missing_docs)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
 
 //! Google Cloud Platform Service Account authentication abstraction for Rust
 //!
