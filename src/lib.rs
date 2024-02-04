@@ -135,6 +135,20 @@ pub struct GoogleServiceAccountAuthenticator {
     authenticator_type: GoogleServiceAccountAuthenticatorType,
 }
 impl GoogleServiceAccountAuthenticator {
+    /// Function that builds new authenticator struct that later can be used to communicate with
+    pub fn new() -> Result<GoogleServiceAccountAuthenticator> {
+        let google_application_credentials = std::env::var("GOOGLE_APPLICATION_CREDENTIALS").ok();
+        if google_application_credentials.is_some() {
+            let authenticator = Self::new_from_service_account_key_file(std::path::Path::new(
+                &google_application_credentials.unwrap(),
+            ))?;
+            return Ok(authenticator);
+        } else {
+            return Self::new_from_instance_metadata();
+        }
+    }
+
+    /// Google's authentication API.
     pub fn new_from_instance_metadata() -> Result<GoogleServiceAccountAuthenticator> {
         Ok(GoogleServiceAccountAuthenticator {
             headers: None,
