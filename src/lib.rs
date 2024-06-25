@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
@@ -34,24 +34,24 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tempfile::NamedTempFile;
 use url::Url;
 
-#[derive(PartialEq, Debug, Deserialize)]
+#[derive(PartialEq, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-enum ServiceAccountKeyType {
+pub enum ServiceAccountKeyType {
     ServiceAccount,
 }
 
-#[derive(Debug, Deserialize)]
-struct ServiceAccountKey {
-    r#type: ServiceAccountKeyType,
-    project_id: String,
-    private_key_id: String,
-    private_key: String,
-    client_email: String,
-    client_id: String,
-    auth_uri: Url,
-    token_uri: Url,
-    auth_provider_x509_cert_url: String,
-    client_x509_cert_url: String,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ServiceAccountKey {
+    pub r#type: ServiceAccountKeyType,
+    pub project_id: String,
+    pub private_key_id: String,
+    pub private_key: String,
+    pub client_email: String,
+    pub client_id: String,
+    pub auth_uri: Url,
+    pub token_uri: Url,
+    pub auth_provider_x509_cert_url: String,
+    pub client_x509_cert_url: String,
 }
 impl ServiceAccountKey {
     fn private_key_as_namedtempfile(&self) -> Result<NamedTempFile> {
@@ -74,7 +74,7 @@ struct JWTPayload {
 }
 impl JWTPayload {
     fn new(account: String) -> JWTPayload {
-        let lifetime = 60; // in seconds
+        let lifetime = 60 * 60; // in seconds
 
         let now = SystemTime::now();
         let secs_since_epoc = now.duration_since(UNIX_EPOCH).unwrap();
@@ -165,6 +165,14 @@ impl GoogleServiceAccountAuthenticator {
     ) -> Result<GoogleServiceAccountAuthenticator> {
         let service_account_key: ServiceAccountKey =
             serde_json::from_str(&std::fs::read_to_string(keyfile)?)?;
+        Self::new_from_service_account_key(service_account_key)
+    }
+
+    /// Function that builds new authenticator struct that later can be used to communicate with
+    /// Google's authentication API.
+    pub fn new_from_service_account_key(
+        service_account_key: ServiceAccountKey,
+    ) -> Result<GoogleServiceAccountAuthenticator> {
         let headers = JWTHeaders {};
         let payload = JWTPayload::new(service_account_key.client_email.clone());
 

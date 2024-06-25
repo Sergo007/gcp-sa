@@ -9,6 +9,16 @@ API calls can target a Google API or your own Cloud Function or Cloud Run instan
 Simple example for acquiring an ID token (JWT):
 
 ```rust
+use gcp_sa::GoogleServiceAccountAuthenticator;
+
+pub async fn id_token(scope: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut authenticator = GoogleServiceAccountAuthenticator::new()?;
+    let token: gcp_sa::GoogleIDToken = authenticator.request_id_token(scope.to_string()).await?;
+    Ok(token.id_token)
+}
+```
+
+```rust
 let authenticator = GoogleServiceAccountAuthenticator::new_from_service_account_key_file(std::path::Path("key.json".to_string())).unwrap();
 let token = authenticator.request_id_token("https://my-google-app.endpoint.tld/something").await.unwrap();
 ```
